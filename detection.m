@@ -1,13 +1,30 @@
-%# read video frames
-vid = VideoReader('test.avi');
-sz = [vid.Height vid.Width];
-mov = read(vid, [1 vid.NumberOfFrames]);
+clc;clear;close all
+%step read mymov
+mymov = vision.VideoFileReader('test.avi');
+mymov1 =  VideoReader('test.avi');
+nFrames = mymov1.NumberOfFrames;
 
-%# prepare GUI
-p = get(0,'DefaultFigurePosition');
-hFig = figure('Menubar','none', 'Resize','off', ...
-    'Position',[p(1:2) sz(2) sz(1)]);
+foregroundDetector = vision.ForegroundDetector('NumGaussians',3,'NumTrainingFrames',20);
 
-%# play movie
-movv = struct('cdata',squeeze(num2cell(mov,[1 2 3])), 'colormap',[]);
-movie(hFig, movv, 999, vid.FrameRate);
+
+  for i = 1:nFrames-1
+        frame = step(mymov);
+        b = frame;
+        pause(0.0005);
+        frame = rgb2gray(frame);
+        
+        foreground = step(foregroundDetector, frame);
+        mask = foreground;
+
+        mask = medfilt2(mask,[11 11]);
+
+        mask = imopen(mask, strel('rectangle', [11,11]));
+        mask = imclose(mask, strel('rectangle', [21, 21])); 
+        mask = imfill(mask, 'holes');  
+
+%         axes(handles.axes1);
+        imshow(b,[]);
+        
+  end
+       
+       
